@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+.gitattributes export-ignore
+.github/ export-ignore
+.gitignore export-ignore
+CHANGELOG.md export-ignore
+example/ export-ignore
+LICENSE export-ignore
+phpunit.xml.dist export-ignore
+README.md export-ignore
+tests/ export-ignore

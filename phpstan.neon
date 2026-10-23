@@ -1,0 +1,11 @@
+parameters:
+    # the cassandra extension is optional for static analysis: without it its classes are unknown, and with it the
+    # signatures phpstan reads from reflection do not match what the driver actually accepts
+    reportUnmatchedIgnoredErrors: false
+
+    ignoreErrors:
+        -
+            message: '#Cassandra#'
+            paths:
+                - src/Database/Adapter/ScyllaAdapter.php
+                - src/Database/Adapter/ScyllaAdapterFactory.php

@@ -1,0 +1,35 @@
+{
+    "name": "efabrica/phoenix-scylla",
+    "type": "library",
+    "description": "Cassandra / ScyllaDB adapter for Phoenix database migrations",
+    "keywords": [
+        "PHP",
+        "Database",
+        "Migrations",
+        "Cassandra",
+        "ScyllaDB",
+        "CQL"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "ext-cassandra": "*",
+        "efabrica/phoenix-core": "^4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phoenix\\": "src/"
+        },
+        "files": [
+            "src/bootstrap.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phoenix\\Tests\\": "tests/"
+        }
+    }
+}

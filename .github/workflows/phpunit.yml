@@ -1,0 +1,62 @@
+name: PHPunit Cassandra (ScyllaDB)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: null
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # efabrica/php-prod images ship the cassandra extension, so no setup-php / pecl step is needed
+        include:
+          - php: '8.4'
+            image: efabrica/php-prod:8.4
+          - php: '8.5'
+            image: efabrica/php-prod:8.5-scylla
+
+    name: PHPunit Cassandra - PHP ${{ matrix.php }}
+
+    services:
+      scylla:
+        image: scylladb/scylla:5.4
+        ports:
+          - 9042:9042
+        options: >-
+          --health-cmd="cqlsh -e 'describe cluster'"
+          --health-interval=15s
+          --health-timeout=10s
+          --health-retries=20
+
+    env:
+      # the image has no composer and no glibc for the runner's node, so steps run through docker run
+      # instead of a container job; --network host makes the scylla service reachable on 127.0.0.1.
+      # PHP_RUN ends before the image name so that a step can add its own docker options (-e ...);
+      # anything placed after the image name goes to the container's entrypoint instead of docker run
+      PHP_RUN: docker run --rm --network host -v ${{ github.workspace }}:/app -w /app -e COMPOSER_HOME=/tmp/composer
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Pull PHP image
+        run: docker pull ${{ matrix.image }}
+
+      - name: Download composer
+        run: curl -sS -o composer.phar https://getcomposer.org/download/latest-stable/composer.phar
+
+      - name: Composer update
+        run: ${{ env.PHP_RUN }} ${{ matrix.image }} php composer.phar update --no-progress --no-interaction
+
+      - name: PHPunit
+        run: >-
+          ${{ env.PHP_RUN }}
+          -e PHOENIX_CASSANDRA_HOST=127.0.0.1
+          -e PHOENIX_CASSANDRA_PORT=9042
+          -e PHOENIX_CASSANDRA_KEYSPACE=phoenix
+          ${{ matrix.image }}
+          php vendor/bin/phpunit --no-coverage
