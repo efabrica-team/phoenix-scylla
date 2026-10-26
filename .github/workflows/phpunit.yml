@@ -12,51 +12,69 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # efabrica/php-prod images ship the cassandra extension, so no setup-php / pecl step is needed
         include:
           - php: '8.4'
-            image: efabrica/php-prod:8.4
+            image: php:8.4-cli
+            coverage: true
           - php: '8.5'
-            image: efabrica/php-prod:8.5-scylla
+            image: php:8.5-cli
+            coverage: true
+          - php: '8.6'
+            image: php:8.6-rc-cli # TODO: switch to php:8.6-cli once PHP 8.6 is released
+            coverage: false # TODO: enable once pcov builds against PHP 8.6 (install-php-extensions and pcov master both lack 8.6 support)
 
     name: PHPunit Cassandra - PHP ${{ matrix.php }}
+
+    # official php image (Debian based, so the runner's node works inside it); the cassandra extension
+    # (he4rt/scylladb-php-driver, maintained fork of the DataStax driver) is compiled in the first step
+    container:
+      image: ${{ matrix.image }}
 
     services:
       scylla:
         image: scylladb/scylla:5.4
-        ports:
-          - 9042:9042
         options: >-
           --health-cmd="cqlsh -e 'describe cluster'"
           --health-interval=15s
           --health-timeout=10s
           --health-retries=20
 
-    env:
-      # the image has no composer and no glibc for the runner's node, so steps run through docker run
-      # instead of a container job; --network host makes the scylla service reachable on 127.0.0.1.
-      # PHP_RUN ends before the image name so that a step can add its own docker options (-e ...);
-      # anything placed after the image name goes to the container's entrypoint instead of docker run
-      PHP_RUN: docker run --rm --network host -v ${{ github.workspace }}:/app -w /app -e COMPOSER_HOME=/tmp/composer
-
     steps:
+      # php:*-cli images ship without git; without it actions/checkout falls back to a REST API tarball,
+      # which honours the export-ignore rules in .gitattributes and therefore drops tests/ and phpunit.xml.dist
+      - name: Install git
+        run: apt-get update -qq && apt-get install -yqq --no-install-recommends git
+
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Pull PHP image
-        run: docker pull ${{ matrix.image }}
-
-      - name: Download composer
-        run: curl -sS -o composer.phar https://getcomposer.org/download/latest-stable/composer.phar
+      - name: Install cassandra extension and composer
+        # https://github.com/mlocati/docker-php-extension-installer
+        run: |
+          curl -sSLf -o /usr/local/bin/install-php-extensions https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions
+          chmod +x /usr/local/bin/install-php-extensions
+          # pcov provides the code coverage driver for phpunit --coverage-text (only where it supports the PHP version)
+          install-php-extensions cassandra ${{ matrix.coverage && 'pcov' || '' }} @composer
+          # php:8.6-rc-cli ships without mbstring, which phpunit needs
+          if ! php -m | grep -qi '^mbstring$'; then
+            apt-get update -qq && apt-get install -yqq --no-install-recommends libonig-dev
+            docker-php-ext-install mbstring
+          fi
+          php -m | grep -i -E '^(cassandra|mbstring)$'
+          if [ "${{ matrix.coverage }}" = "true" ]; then php -m | grep -i '^pcov$'; fi
 
       - name: Composer update
-        run: ${{ env.PHP_RUN }} ${{ matrix.image }} php composer.phar update --no-progress --no-interaction
+        run: composer update --no-progress --no-interaction
+
+      - name: Check ScyllaDB service is reachable
+        run: |
+          getent hosts scylla || echo "hostname scylla does not resolve"
+          php -r '$s = @fsockopen("scylla", 9042, $errno, $errstr, 5); echo $s ? "scylla:9042 reachable\n" : "scylla:9042 NOT reachable: $errstr\n";'
+          php -r '$s = Cassandra::cluster()->withContactPoints("scylla")->withPort(9042)->build()->connect(); echo "cassandra driver connected\n";'
 
       - name: PHPunit
-        run: >-
-          ${{ env.PHP_RUN }}
-          -e PHOENIX_CASSANDRA_HOST=127.0.0.1
-          -e PHOENIX_CASSANDRA_PORT=9042
-          -e PHOENIX_CASSANDRA_KEYSPACE=phoenix
-          ${{ matrix.image }}
-          php vendor/bin/phpunit --no-coverage
+        run: php vendor/bin/phpunit ${{ matrix.coverage && '--coverage-text' || '--no-coverage' }}
+        env:
+          PHOENIX_CASSANDRA_HOST: scylla
+          PHOENIX_CASSANDRA_PORT: 9042
+          PHOENIX_CASSANDRA_KEYSPACE: phoenix

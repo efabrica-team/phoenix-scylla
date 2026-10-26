@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Changed
+- PHPUnit workflow runs on the official `php` docker images (8.4, 8.5, 8.6-rc) and builds the cassandra extension with install-php-extensions, PHP 8.6 added to the matrix
 - phpunit.xml.dist migrated to the PHPUnit 9 configuration schema (`<coverage>` instead of the deprecated `<filter><whitelist>`), the "deprecated schema" warning is gone
 
 ## [1.0.0] - 2026-10-23

@@ -4,7 +4,7 @@ Cassandra / ScyllaDB (CQL) adapter for [Phoenix](https://github.com/efabrica-tea
 
 ## Requirements
 - PHP 8.4+
-- the [`cassandra`](https://github.com/datastax/php-driver) PHP extension (DataStax PHP driver), it is not available through PECL and has to be built for your PHP version
+- the `cassandra` PHP extension: the maintained [he4rt/scylladb-php-driver](https://github.com/he4rt/scylladb-php-driver) fork of the DataStax PHP driver, it is not available through PECL and has to be built for your PHP version. On the official `php` docker images `install-php-extensions cassandra` from [docker-php-extension-installer](https://github.com/mlocati/docker-php-extension-installer) builds it (this is how `.github/workflows/phpunit.yml` gets it)
 - Cassandra 3+ or ScyllaDB (ScyllaDB 5.4 is covered by the test suite, see `.github/workflows/phpunit.yml`)
 
 ## Installation
@@ -145,4 +145,4 @@ Further differences worth knowing:
 - `consistency` applies to every statement the adapter runs, including the log table writes. `ALL` on a cluster with a node down blocks migrations.
 
 ## Tests
-Tests need a running Cassandra or ScyllaDB, connection is taken from the `PHOENIX_CASSANDRA_*` environment variables (see `phpunit.xml.dist`). The keyspace is dropped and recreated by the tests.
+Tests need a running Cassandra or ScyllaDB, connection is taken from the `PHOENIX_CASSANDRA_*` environment variables (see `phpunit.xml.dist`). The keyspace is dropped and recreated by the tests. The GitHub workflow runs them on the official `php:8.4-cli`, `php:8.5-cli` and `php:8.6-rc-cli` images against a ScyllaDB service container.
