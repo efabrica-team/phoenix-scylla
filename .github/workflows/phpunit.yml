@@ -56,8 +56,14 @@ jobs:
       - name: Composer update
         run: composer update --no-progress --no-interaction
 
+      - name: Check ScyllaDB service is reachable
+        run: |
+          getent hosts scylla || echo "hostname scylla does not resolve"
+          php -r '$s = @fsockopen("scylla", 9042, $errno, $errstr, 5); echo $s ? "scylla:9042 reachable\n" : "scylla:9042 NOT reachable: $errstr\n";'
+          php -r '$s = Cassandra::cluster()->withContactPoints("scylla")->withPort(9042)->build()->connect(); echo "cassandra driver connected\n";'
+
       - name: PHPunit
-        run: vendor/bin/phpunit --no-coverage
+        run: php vendor/bin/phpunit --no-coverage
         env:
           PHOENIX_CASSANDRA_HOST: scylla
           PHOENIX_CASSANDRA_PORT: 9042
