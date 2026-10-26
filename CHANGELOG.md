@@ -1,7 +1,8 @@
 # Change Log
 
 ## [Unreleased]
-
+### Changed
+- phpunit.xml.dist migrated to the PHPUnit 9 configuration schema (`<coverage>` instead of the deprecated `<filter><whitelist>`), the "deprecated schema" warning is gone
 
 ## [1.0.0] - 2026-10-23
 ### Added

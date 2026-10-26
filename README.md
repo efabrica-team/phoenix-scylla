@@ -16,7 +16,7 @@ The package registers the `cassandra` adapter in `Phoenix\Database\Adapter\Adapt
 ## Setup in a project
 1. Create the keyspace. Phoenix does not create it and the adapter refuses to connect without one:
     ```cql
-    CREATE KEYSPACE my_app WITH replication = {'class': 'SimpleStrategy', 'dc1': 3};
+    CREATE KEYSPACE my_app WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
     ```
 2. Create a configuration file `phoenix.php` (or `phoenix.yml`, `phoenix.neon`, `phoenix.json`) in the project root:
     ```php
