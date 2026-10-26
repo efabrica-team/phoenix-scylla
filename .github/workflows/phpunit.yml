@@ -15,10 +15,13 @@ jobs:
         include:
           - php: '8.4'
             image: php:8.4-cli
+            coverage: true
           - php: '8.5'
             image: php:8.5-cli
+            coverage: true
           - php: '8.6'
             image: php:8.6-rc-cli # TODO: switch to php:8.6-cli once PHP 8.6 is released
+            coverage: false # TODO: enable once pcov builds against PHP 8.6 (install-php-extensions and pcov master both lack 8.6 support)
 
     name: PHPunit Cassandra - PHP ${{ matrix.php }}
 
@@ -50,14 +53,15 @@ jobs:
         run: |
           curl -sSLf -o /usr/local/bin/install-php-extensions https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions
           chmod +x /usr/local/bin/install-php-extensions
-          # pcov provides the code coverage driver for phpunit --coverage-text
-          install-php-extensions cassandra pcov @composer
+          # pcov provides the code coverage driver for phpunit --coverage-text (only where it supports the PHP version)
+          install-php-extensions cassandra ${{ matrix.coverage && 'pcov' || '' }} @composer
           # php:8.6-rc-cli ships without mbstring, which phpunit needs
           if ! php -m | grep -qi '^mbstring$'; then
             apt-get update -qq && apt-get install -yqq --no-install-recommends libonig-dev
             docker-php-ext-install mbstring
           fi
-          php -m | grep -i -E '^(cassandra|mbstring|pcov)$'
+          php -m | grep -i -E '^(cassandra|mbstring)$'
+          if [ "${{ matrix.coverage }}" = "true" ]; then php -m | grep -i '^pcov$'; fi
 
       - name: Composer update
         run: composer update --no-progress --no-interaction
@@ -69,7 +73,7 @@ jobs:
           php -r '$s = Cassandra::cluster()->withContactPoints("scylla")->withPort(9042)->build()->connect(); echo "cassandra driver connected\n";'
 
       - name: PHPunit
-        run: php vendor/bin/phpunit --coverage-text
+        run: php vendor/bin/phpunit ${{ matrix.coverage && '--coverage-text' || '--no-coverage' }}
         env:
           PHOENIX_CASSANDRA_HOST: scylla
           PHOENIX_CASSANDRA_PORT: 9042
