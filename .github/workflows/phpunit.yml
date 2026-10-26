@@ -37,21 +37,27 @@ jobs:
           --health-retries=20
 
     steps:
+      # php:*-cli images ship without git; without it actions/checkout falls back to a REST API tarball,
+      # which honours the export-ignore rules in .gitattributes and therefore drops tests/ and phpunit.xml.dist
+      - name: Install git
+        run: apt-get update -qq && apt-get install -yqq --no-install-recommends git
+
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install cassandra extension and composer
         # https://github.com/mlocati/docker-php-extension-installer
         run: |
           curl -sSLf -o /usr/local/bin/install-php-extensions https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions
           chmod +x /usr/local/bin/install-php-extensions
-          install-php-extensions cassandra @composer
+          # pcov provides the code coverage driver for phpunit --coverage-text
+          install-php-extensions cassandra pcov @composer
           # php:8.6-rc-cli ships without mbstring, which phpunit needs
           if ! php -m | grep -qi '^mbstring$'; then
             apt-get update -qq && apt-get install -yqq --no-install-recommends libonig-dev
             docker-php-ext-install mbstring
           fi
-          php -m | grep -i -E '^(cassandra|mbstring)$'
+          php -m | grep -i -E '^(cassandra|mbstring|pcov)$'
 
       - name: Composer update
         run: composer update --no-progress --no-interaction
