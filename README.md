@@ -1,6 +1,6 @@
 # Phoenix Cassandra / ScyllaDB adapter
 
-Cassandra / ScyllaDB (CQL) adapter for [Phoenix](https://github.com/efabrica/phoenix-core) database migrations. It registers the `cassandra` adapter.
+Cassandra / ScyllaDB (CQL) adapter for [Phoenix](https://github.com/efabrica-team/phoenix-core) database migrations. It registers the `cassandra` adapter.
 
 ## Requirements
 - PHP 8.4+
@@ -49,7 +49,7 @@ The package registers the `cassandra` adapter in `Phoenix\Database\Adapter\Adapt
         'log_table_name' => 'phoenix_log',
     ];
     ```
-    `yml` and `neon` config files need `symfony/yaml` resp. `nette/neon` installed. All configuration keys are described in the [configuration docs](https://github.com/efabrica/phoenix-core/blob/master/docs/configuration/index.md).
+    `yml` and `neon` config files need `symfony/yaml` resp. `nette/neon` installed. All configuration keys are described in the [configuration docs](https://github.com/efabrica-team/phoenix-core/blob/master/docs/configuration/index.md).
 3. Create and run migrations with the command runner `vendor/bin/phoenix`:
     ```
     vendor/bin/phoenix create "App\CreateEvents"
@@ -57,7 +57,7 @@ The package registers the `cassandra` adapter in `Phoenix\Database\Adapter\Adapt
     vendor/bin/phoenix status
     vendor/bin/phoenix rollback
     ```
-    Use `-e production` to pick another environment and `-c path/to/config.php` for a config file elsewhere. The log table (`log_table_name`) is created automatically on the first run. All commands are described in the [commands docs](https://github.com/efabrica/phoenix-core/blob/master/docs/commands/index.md), how to write migrations in the [migrations docs](https://github.com/efabrica/phoenix-core/blob/master/docs/migrations/index.md).
+    Use `-e production` to pick another environment and `-c path/to/config.php` for a config file elsewhere. The log table (`log_table_name`) is created automatically on the first run. All commands are described in the [commands docs](https://github.com/efabrica-team/phoenix-core/blob/master/docs/commands/index.md), how to write migrations in the [migrations docs](https://github.com/efabrica-team/phoenix-core/blob/master/docs/migrations/index.md).
 4. The role used for migrations needs `CREATE`, `ALTER` and `DROP` on the keyspace plus `MODIFY` and `SELECT` on the log table and on the tables you fill with data.
 
 ## Configuration options
