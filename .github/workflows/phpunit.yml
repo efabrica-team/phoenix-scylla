@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Install cassandra extension and composer
         # https://github.com/mlocati/docker-php-extension-installer
@@ -63,7 +63,7 @@ jobs:
           php -r '$s = Cassandra::cluster()->withContactPoints("scylla")->withPort(9042)->build()->connect(); echo "cassandra driver connected\n";'
 
       - name: PHPunit
-        run: php vendor/bin/phpunit --no-coverage
+        run: php vendor/bin/phpunit --coverage-text
         env:
           PHOENIX_CASSANDRA_HOST: scylla
           PHOENIX_CASSANDRA_PORT: 9042
