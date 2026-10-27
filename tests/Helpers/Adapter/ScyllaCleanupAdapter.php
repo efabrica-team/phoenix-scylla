@@ -18,7 +18,8 @@ final class ScyllaCleanupAdapter implements CleanupInterface
 
     public function cleanupDatabase(): void
     {
-        $session = ScyllaSessionFactory::create();
+        $cluster = ScyllaSessionFactory::cluster(); // must stay alive while $session is used (ext-cassandra lifetime bug)
+        $session = $cluster->connect('');
         $session->execute(new SimpleStatement(sprintf('DROP KEYSPACE IF EXISTS %s', $this->keyspace)));
         $session->execute(new SimpleStatement(sprintf(
             "CREATE KEYSPACE %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}",
