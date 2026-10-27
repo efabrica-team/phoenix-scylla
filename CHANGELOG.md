@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [1.0.1] - 2026-10-27
 ### Fixed
 - `ScyllaAdapterFactory` keeps the `Cassandra\Cluster` object alive for the lifetime of the adapter. The ext-cassandra `Session` holds raw pointers into its `Cluster`; with `build()->connect()` the Cluster was destroyed immediately and every `prepare()` read freed memory, which showed up as intermittent `zend_mm_heap corrupted` crashes of `phoenix migrate`
 
@@ -16,5 +18,6 @@
 - adapters extracted from efabrica/phoenix-core into this package
 - `keyspace` configuration option, `db_name` stays accepted as an alias
 
-[unreleased]: https://github.com/efabrica-team/phoenix-scylla/compare/1.0.0...HEAD
+[unreleased]: https://github.com/efabrica-team/phoenix-scylla/compare/1.0.1...HEAD
+[1.0.1]: https://github.com/efabrica-team/phoenix-scylla/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/efabrica-team/phoenix-scylla/compare/6122388980150f7749c198fbce3a608331291ca9...1.0.0
