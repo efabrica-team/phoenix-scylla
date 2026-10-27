@@ -7,6 +7,7 @@ namespace Phoenix\Database\Adapter;
 use Cassandra;
 use Cassandra\Bigint;
 use Cassandra\Blob;
+use Cassandra\Cluster;
 use Cassandra\Collection;
 use Cassandra\Date;
 use Cassandra\Time;
@@ -54,6 +55,9 @@ final class ScyllaAdapter implements AdapterInterface, LogTablePrimaryKeyInterfa
 
     private Session $session;
 
+    /** kept only so the Cluster outlives the Session, ext-cassandra Session holds raw pointers into it */
+    private ?Cluster $cluster;
+
     private string $keyspace;
 
     private ?string $version;
@@ -67,16 +71,22 @@ final class ScyllaAdapter implements AdapterInterface, LogTablePrimaryKeyInterfa
     /** @var array<string, array<string, array{type: string, kind: string}>>|null table name => column name => metadata */
     private ?array $columnMeta = null;
 
-    public function __construct(Session $session, string $keyspace, ?string $version = null)
+    public function __construct(Session $session, string $keyspace, ?string $version = null, ?Cluster $cluster = null)
     {
         $this->session = $session;
         $this->keyspace = $keyspace;
         $this->version = $version;
+        $this->cluster = $cluster;
     }
 
     public function getSession(): Session
     {
         return $this->session;
+    }
+
+    public function getCluster(): ?Cluster
+    {
+        return $this->cluster;
     }
 
     public function getKeyspace(): string

@@ -30,7 +30,7 @@ final class ScyllaMigrationTest extends TestCase
         }
         $keyspace = ScyllaSessionFactory::keyspace();
         (new ScyllaCleanupAdapter($keyspace))->cleanupDatabase();
-        $this->adapter = new ScyllaAdapter(ScyllaSessionFactory::create($keyspace), $keyspace);
+        $this->adapter = ScyllaSessionFactory::createAdapter($keyspace);
     }
 
     public function testInitCreatesLogTableKeyedByMigrationIdentity(): void

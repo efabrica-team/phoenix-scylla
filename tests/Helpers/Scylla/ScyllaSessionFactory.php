@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phoenix\Tests\Helpers\Scylla;
 
 use Cassandra;
+use Cassandra\Cluster;
 use Cassandra\Session;
+use Phoenix\Database\Adapter\ScyllaAdapter;
 
 final class ScyllaSessionFactory
 {
@@ -26,6 +28,12 @@ final class ScyllaSessionFactory
 
     public static function create(?string $keyspace = null): Session
     {
+        $cluster = self::cluster();
+        return $keyspace === null ? $cluster->connect('') : $cluster->connect($keyspace);
+    }
+
+    public static function cluster(): Cluster
+    {
         $builder = Cassandra::cluster()
             ->withContactPoints(self::host())
             ->withPort(self::port());
@@ -36,7 +44,16 @@ final class ScyllaSessionFactory
             $builder->withCredentials($username, (string)$password);
         }
 
-        $cluster = $builder->build();
-        return $keyspace === null ? $cluster->connect() : $cluster->connect($keyspace);
+        return $builder->build();
+    }
+
+    /**
+     * Preferred over create(): the adapter keeps the Cluster alive as long as the Session
+     * (ext-cassandra Session holds raw pointers into the Cluster, see ScyllaAdapterFactory)
+     */
+    public static function createAdapter(string $keyspace): ScyllaAdapter
+    {
+        $cluster = self::cluster();
+        return new ScyllaAdapter($cluster->connect($keyspace), $keyspace, null, $cluster);
     }
 }

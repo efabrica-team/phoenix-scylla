@@ -44,13 +44,16 @@ final class ScyllaAdapterFactory implements AdapterFactoryInterface
 
         $this->applyOptionalSettings($builder, $config);
 
-        $session = $builder->build()->connect($keyspace);
+        // the Cluster object must outlive the Session: ext-cassandra Session keeps raw pointers into it and
+        // reads freed memory in every prepare() once the Cluster is destroyed (zend_mm_heap corrupted)
+        $cluster = $builder->build();
+        $session = $cluster->connect($keyspace);
 
         $version = $config->getVersion();
         if ($version === null) {
             $version = $this->loadVersion($session);
         }
-        $adapter = new ScyllaAdapter($session, $keyspace, AdapterFactory::normalizeVersion($version));
+        $adapter = new ScyllaAdapter($session, $keyspace, AdapterFactory::normalizeVersion($version), $cluster);
         $adapter->setCharset($config->getCharset());
         $adapter->setCollation($config->getCollation());
         return $adapter;

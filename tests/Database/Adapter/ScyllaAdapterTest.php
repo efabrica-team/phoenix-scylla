@@ -36,7 +36,7 @@ final class ScyllaAdapterTest extends TestCase
         }
         $this->keyspace = ScyllaSessionFactory::keyspace();
         (new ScyllaCleanupAdapter($this->keyspace))->cleanupDatabase();
-        $this->adapter = new ScyllaAdapter(ScyllaSessionFactory::create($this->keyspace), $this->keyspace);
+        $this->adapter = ScyllaSessionFactory::createAdapter($this->keyspace);
     }
 
     public function testGetQueryBuilder(): void
