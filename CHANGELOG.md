@@ -1,6 +1,11 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- loadViews() - structure loaded by getStructure() contains the names of views (materialized views from `system_schema.views`), needed by `viewExists()` in migrations
+
+### Changed
+- requires `efabrica/phoenix-core` ^4.1 (`StructureBehavior::loadViews()`)
 
 ## [1.0.1] - 2026-10-27
 ### Fixed

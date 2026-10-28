@@ -318,6 +318,17 @@ final class ScyllaAdapter implements AdapterInterface, LogTablePrimaryKeyInterfa
         return $tables;
     }
 
+    protected function loadViews(string $database): array
+    {
+        $views = $this->run(sprintf(
+            "SELECT view_name FROM system_schema.views WHERE keyspace_name = '%s'",
+            $this->escapeLiteral($database)
+        ));
+        $names = array_map(fn(array $view): string => (string)$view['view_name'], $views);
+        sort($names);
+        return $names;
+    }
+
     /**
      * @param array<string, string> $table
      */

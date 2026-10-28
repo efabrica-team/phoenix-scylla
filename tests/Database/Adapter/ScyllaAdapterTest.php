@@ -13,6 +13,7 @@ use Phoenix\Database\Element\Column;
 use Phoenix\Database\Element\ColumnSettings;
 use Phoenix\Database\Element\Index;
 use Phoenix\Database\Element\MigrationTable;
+use Phoenix\Database\Element\MigrationView;
 use Phoenix\Database\Element\Structure;
 use Phoenix\Database\Element\Table;
 use Phoenix\Database\QueryBuilder\ScyllaQueryBuilder;
@@ -87,6 +88,30 @@ final class ScyllaAdapterTest extends TestCase
         $updatedStructure = $this->adapter->getStructure();
         $this->assertCount(1, $updatedStructure->getTables());
         $this->assertInstanceOf(Table::class, $updatedStructure->getTable('structure_test'));
+    }
+
+    public function testStructureViews(): void
+    {
+        $structure = $this->adapter->getStructure();
+        $this->assertSame([], $structure->getViews());
+        $this->assertFalse($structure->viewExists('users_by_title'));
+
+        $this->createTable('users');
+        $view = new MigrationView('users_by_title');
+        $view->sql('SELECT * FROM "users" WHERE "title" IS NOT NULL AND "id" IS NOT NULL PRIMARY KEY (("title"), "id")');
+        $view->create();
+        $this->runQueries($this->adapter->getQueryBuilder()->createView($view));
+
+        $updatedStructure = $this->adapter->getStructure();
+        $this->assertSame(['users_by_title'], $updatedStructure->getViews());
+        $this->assertTrue($updatedStructure->viewExists('users_by_title'));
+        $this->assertFalse($updatedStructure->viewExists('users'));
+        // a materialized view is not reported as a table
+        $this->assertCount(1, $updatedStructure->getTables());
+        $this->assertNull($updatedStructure->getTable('users_by_title'));
+
+        $this->runQueries($this->adapter->getQueryBuilder()->dropView($view));
+        $this->assertFalse($this->adapter->getStructure()->viewExists('users_by_title'));
     }
 
     public function testStructureOfCreatedTable(): void
