@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+
+
+## [1.1.0] - 2026-10-28
 ### Added
 - loadViews() - structure loaded by getStructure() contains the names of views (materialized views from `system_schema.views`), needed by `viewExists()` in migrations
 
@@ -23,6 +26,7 @@
 - adapters extracted from efabrica/phoenix-core into this package
 - `keyspace` configuration option, `db_name` stays accepted as an alias
 
-[unreleased]: https://github.com/efabrica-team/phoenix-scylla/compare/1.0.1...HEAD
+[unreleased]: https://github.com/efabrica-team/phoenix-scylla/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/efabrica-team/phoenix-scylla/compare/1.0.1...1.1.0
 [1.0.1]: https://github.com/efabrica-team/phoenix-scylla/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/efabrica-team/phoenix-scylla/compare/6122388980150f7749c198fbce3a608331291ca9...1.0.0
